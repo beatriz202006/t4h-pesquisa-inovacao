@@ -1,0 +1,79 @@
+ Container desafio-performance-contrato-run-6cebda0ce193 Creating 
+ Container desafio-performance-contrato-run-6cebda0ce193 Created 
+DIFERENTE /clientes/1
+          .status: esperado 200, obtido 500
+DIFERENTE /clientes/2
+          .status: esperado 200, obtido 500
+DIFERENTE /clientes/500
+          .status: esperado 200, obtido 500
+DIFERENTE /clientes/99999
+          .status: esperado 200, obtido 500
+DIFERENTE /clientes/100000
+          .status: esperado 200, obtido 500
+DIFERENTE /clientes/100001
+          .status: esperado 404, obtido 500
+igual     /clientes/abc
+DIFERENTE /clientes?email=cliente3%40exemplo.com
+          .status: esperado 200, obtido 500
+DIFERENTE /clientes?email=Cliente4%40Exemplo.com
+          .status: esperado 200, obtido 500
+DIFERENTE /clientes?email=CLIENTE10%40EXEMPLO.COM
+          .status: esperado 200, obtido 500
+DIFERENTE /clientes?email=ninguem%40exemplo.com
+          .status: esperado 200, obtido 500
+igual     /clientes
+DIFERENTE /clientes/7/pedidos
+          .status: esperado 200, obtido 500
+DIFERENTE /clientes/42/pedidos
+          .status: esperado 200, obtido 500
+DIFERENTE /clientes/31337/pedidos
+          .status: esperado 200, obtido 500
+DIFERENTE /clientes/99999/pedidos
+          .status: esperado 200, obtido 500
+DIFERENTE /clientes/100001/pedidos
+          .status: esperado 404, obtido 500
+DIFERENTE /pedidos?status=pago
+          .status: esperado 200, obtido 500
+DIFERENTE /pedidos?status=entregue&pagina=3
+          .status: esperado 200, obtido 500
+DIFERENTE /pedidos?status=cancelado&pagina=250
+          .status: esperado 200, obtido 500
+DIFERENTE /pedidos?status=pendente&pagina=1
+          .status: esperado 200, obtido 500
+DIFERENTE /pedidos?status=pago&pagina=15000
+          .status: esperado 200, obtido 500
+igual     /pedidos?status=perdido
+igual     /pedidos?status=pago&pagina=0
+DIFERENTE /produtos/busca?q=cadeira
+          .status: esperado 200, obtido 500
+DIFERENTE /produtos/busca?q=lumin
+          .status: esperado 200, obtido 500
+DIFERENTE /produtos/busca?q=ERGO
+          .status: esperado 200, obtido 500
+DIFERENTE /produtos/busca?q=sem%20fio
+          .status: esperado 200, obtido 500
+DIFERENTE /produtos/busca?q=inexistente
+          .status: esperado 200, obtido 500
+igual     /produtos/busca?q=ab
+DIFERENTE /relatorios/vendas-por-dia?inicio=2024-01-01&fim=2024-01-07
+          .status: esperado 200, obtido 500
+DIFERENTE /relatorios/vendas-por-dia?inicio=2024-02-27&fim=2024-03-02
+          .status: esperado 200, obtido 500
+DIFERENTE /relatorios/vendas-por-dia?inicio=2025-12-25&fim=2025-12-31
+          .status: esperado 200, obtido 500
+DIFERENTE /relatorios/vendas-por-dia?inicio=2023-12-30&fim=2024-01-02
+          .status: esperado 200, obtido 500
+igual     /relatorios/vendas-por-dia?inicio=2024-03-01&fim=2024-02-01
+igual     /relatorios/vendas-por-dia?inicio=2024-01-01&fim=2024-03-01
+igual     /relatorios/vendas-por-dia?inicio=2024-02-30&fim=2024-03-01
+DIFERENTE /relatorios/top-produtos
+          .status: esperado 200, obtido 500
+DIFERENTE /relatorios/top-produtos?limite=5
+          .status: esperado 200, obtido 500
+DIFERENTE /relatorios/top-produtos?limite=50
+          .status: esperado 200, obtido 500
+igual     /relatorios/top-produtos?limite=0
+igual     /relatorios/top-produtos?limite=51
+
+Contrato quebrado: 32 de 42 respostas mudaram.
+
