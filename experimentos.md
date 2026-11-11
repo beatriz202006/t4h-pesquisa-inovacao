@@ -63,3 +63,11 @@ Os resultados sustentam a hipótese de que o índice composto melhorou a consult
 
 ### Limitações
 Foram realizadas três execuções por cenário. Os resultados podem variar conforme a carga e o ambiente. O custo adicional de armazenamento e escrita do índice ainda não foi medido.
+
+**Análise complementar do plano de execução**
+
+A execução de `EXPLAIN (ANALYZE, BUFFERS)` confirmou o uso do índice `idx_pedidos_cliente_data_id`. O PostgreSQL estimou 5 linhas e retornou exatamente 5 linhas reais.
+
+O índice também evitou uma etapa adicional de ordenação (`Sort`), pois sua definição utiliza as colunas `criado_em DESC` e `id DESC`, correspondentes à ordenação solicitada pela consulta.
+
+O tempo de execução observado foi de 1,694 ms nessa execução isolada. Esse resultado serve como evidência complementar do plano escolhido, mas não substitui as medições de carga realizadas com k6.
