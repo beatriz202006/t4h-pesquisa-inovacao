@@ -90,6 +90,59 @@ Na comparação com o estado anterior, no qual a mediana da rota `cliente-por-em
 
 **Limitações:** As medições foram realizadas em três execuções na mesma máquina. Os resultados gerais incluem os índices dos experimentos anteriores, portanto não devem ser atribuídos exclusivamente a esta alteração. Também não foram medidos isoladamente o espaço adicional ocupado pelo índice nem o impacto sobre operações de escrita. O banco continuou apresentando utilização de CPU próxima de 100%, indicando que ainda existem outros gargalos.
 
+## Experimento 04 — Reescrita da rota para eliminar consultas N+1
+
+### Problema identificado
+
+A rota `GET /clientes/:id/pedidos` realizava várias consultas sequenciais ao banco de dados. Primeiro, consultava o cliente e seus pedidos. Depois, para cada pedido, buscava seus itens individualmente e, para cada item, consultava novamente a tabela de produtos.
+
+Esse padrão caracteriza o problema de consultas N+1: em vez de buscar os dados relacionados em uma consulta conjunta, a aplicação realiza diversas consultas adicionais, aumentando o número de operações e o tempo de resposta.
+
+### Hipótese
+
+A substituição das consultas individuais por uma consulta SQL utilizando `LEFT JOIN` entre as tabelas `pedidos`, `itens_pedido` e `produtos` reduziria a quantidade de interações com o banco de dados e, consequentemente, o tempo de resposta da rota.
+
+### Implementação
+
+A rota foi reescrita para buscar os pedidos, seus itens e os nomes dos produtos em uma única consulta com `LEFT JOIN`.
+
+No código JavaScript, as linhas retornadas pelo banco são agrupadas em um `Map`, permitindo reconstruir a estrutura original da resposta, com pedidos, itens e valores totais.
+
+Foi mantida a verificação da existência do cliente, assim como a ordenação dos pedidos e dos itens. O uso de `LEFT JOIN` também preserva pedidos que eventualmente não possuam itens associados.
+
+### Resultados
+
+Foram realizadas três medições com 20 usuários virtuais durante 60 segundos, mantendo o mesmo ambiente e protocolo dos experimentos anteriores.
+
+| Métrica | Execução 1 | Execução 2 | Execução 3 | Mediana |
+|---|---:|---:|---:|---:|
+| Requisições/s | 12,14 | 12,00 | 11,34 | 12,00 |
+| Mediana geral (ms) | 300,4 | 298,1 | 300,4 | 300,4 |
+| Pedidos do cliente (ms) | 365,0 | 393,9 | 386,2 | 386,2 |
+| Erros (%) | 0 | 0 | 0 | 0 |
+
+### Comparação com o experimento 03
+
+Em comparação com o estado anterior à reescrita da rota, registrado no experimento 03, foram observadas as seguintes diferenças:
+
+- A vazão aumentou de 9,69 para 12,00 requisições por segundo, uma melhora de aproximadamente 23,8%.
+- A mediana geral diminuiu de 405,4 ms para 300,4 ms, uma redução de aproximadamente 25,9%.
+- A mediana da rota `pedidos-do-cliente` caiu de 3.196,6 ms para 386,2 ms, uma redução de aproximadamente 87,9%.
+
+Os resultados indicam que a reescrita reduziu significativamente o tempo de resposta da rota investigada. A comparação é especialmente relevante porque os índices criados nos experimentos anteriores foram mantidos, sendo a alteração de código a principal mudança entre os dois estados avaliados.
+
+### Validação do contrato
+
+Após cada medição, o script de verificação foi executado. Nas três execuções, as 42 respostas permaneceram iguais às registradas na linha de base, indicando que a alteração preservou o contrato observado da API.
+
+### Limitações e próximos passos
+
+Apesar da melhora expressiva na rota investigada, o banco de dados continuou utilizando aproximadamente 99% a 100% da CPU durante as medições.
+
+Outras rotas também permaneceram com tempos elevados, especialmente `pedidos-por-status` e `vendas-por-dia`. Isso indica que ainda existem gargalos de desempenho que não foram resolvidos por esta alteração.
+
+Os testes foram realizados em um ambiente controlado, com dados sintéticos e carga de leitura. Portanto, ainda é necessário investigar os efeitos da alteração em cenários de escrita, maior volume de dados e diferentes níveis de concorrência.
+
 **Análise complementar do plano de execução**
 
 A execução de `EXPLAIN (ANALYZE, BUFFERS)` confirmou o uso do índice `idx_pedidos_cliente_data_id`. O PostgreSQL estimou 5 linhas e retornou exatamente 5 linhas reais.
