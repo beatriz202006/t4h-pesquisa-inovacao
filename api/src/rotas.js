@@ -66,38 +66,53 @@ rotas.get('/clientes/:id/pedidos', assincrono(async (req, res) => {
   const clientes = await consultar('SELECT * FROM clientes WHERE id = $1', [id]);
   if (clientes.length === 0) return res.status(404).json({ erro: 'cliente nao encontrado' });
 
-  const pedidos = await consultar(
-    'SELECT * FROM pedidos WHERE cliente_id = $1 ORDER BY criado_em DESC, id DESC',
+  const linhas = await consultar(
+    `SELECT
+       p.id AS pedido_id,
+       p.status,
+       p.criado_em,
+       ip.id AS item_id,
+       ip.produto_id,
+       ip.quantidade,
+       ip.preco_unitario_centavos,
+       pr.nome AS produto_nome
+     FROM pedidos p
+     LEFT JOIN itens_pedido ip ON ip.pedido_id = p.id
+     LEFT JOIN produtos pr ON pr.id = ip.produto_id
+     WHERE p.cliente_id = $1
+     ORDER BY p.criado_em DESC, p.id DESC, ip.id`,
     [id],
   );
 
-  const resposta = [];
-  for (const pedido of pedidos) {
-    const itens = await consultar('SELECT * FROM itens_pedido WHERE pedido_id = $1 ORDER BY id', [pedido.id]);
+  const pedidosMap = new Map();
 
-    const itensFormatados = [];
-    let total = 0;
-    for (const item of itens) {
-      const [produto] = await consultar('SELECT * FROM produtos WHERE id = $1', [item.produto_id]);
-      itensFormatados.push({
-        produto_id: item.produto_id,
-        produto_nome: produto.nome,
-        quantidade: item.quantidade,
-        preco_unitario_centavos: item.preco_unitario_centavos,
+  for (const linha of linhas) {
+    if (!pedidosMap.has(linha.pedido_id)) {
+      pedidosMap.set(linha.pedido_id, {
+        id: linha.pedido_id,
+        status: linha.status,
+        criado_em: linha.criado_em,
+        total_centavos: 0,
+        itens: [],
       });
-      total += item.quantidade * item.preco_unitario_centavos;
     }
 
-    resposta.push({
-      id: pedido.id,
-      status: pedido.status,
-      criado_em: pedido.criado_em,
-      total_centavos: total,
-      itens: itensFormatados,
-    });
+    const pedido = pedidosMap.get(linha.pedido_id);
+
+    if (linha.item_id !== null) {
+      pedido.itens.push({
+        produto_id: linha.produto_id,
+        produto_nome: linha.produto_nome,
+        quantidade: linha.quantidade,
+        preco_unitario_centavos: linha.preco_unitario_centavos,
+      });
+
+      pedido.total_centavos +=
+        linha.quantidade * linha.preco_unitario_centavos;
+    }
   }
 
-  res.json(resposta);
+  res.json(Array.from(pedidosMap.values()));
 }));
 
 rotas.get('/pedidos', assincrono(async (req, res) => {
