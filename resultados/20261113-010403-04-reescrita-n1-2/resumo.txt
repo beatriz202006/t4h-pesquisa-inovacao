@@ -1,0 +1,17 @@
+Medição: 04-reescrita-n1-2
+Carga: 20 usuários virtuais por 60s
+
+Requisições:        774
+Requisições/s:      12.00
+Tempo de resposta:  mediana 298.1 ms | p95 7416.9 ms | p99 16820.0 ms
+Erros:              0.00%
+
+Por rota:
+rota                  req       mediana       p95           p99           erros   
+cliente               206       187.9 ms      296.6 ms      396.4 ms      0.0%    
+cliente-por-email     112       193.0 ms      301.1 ms      328.2 ms      0.0%    
+pedidos-do-cliente    162       393.9 ms      600.6 ms      854.2 ms      0.0%    
+pedidos-por-status    110       4853.5 ms     15373.2 ms    19498.9 ms    0.0%    
+busca-produtos        125       389.5 ms      599.0 ms      703.6 ms      0.0%    
+vendas-por-dia        49        5324.1 ms     10120.6 ms    12049.2 ms    0.0%    
+top-produtos          10        13542.6 ms    26746.7 ms    27828.1 ms    0.0%    
